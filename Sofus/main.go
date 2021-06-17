@@ -52,11 +52,8 @@ func main() {
 		fmt.Printf("Error retrieving page, %v", err)
 	}
 
-	//fmt.Println(resp)
-
 	dom, err := goquery.NewDocumentFromReader(strings.NewReader(resp))
 	if err != nil {
-		//log.Fatalln(err)
 		fmt.Printf("Error retrieving dom, %v", err)
 	}
 
@@ -66,11 +63,3 @@ func main() {
 
 	})
 }
-
-// // convert the return response to string
-// b, err := io.ReadAll(resp.Body)
-// if err != nil {
-// 	return "", fmt.Errorf("unable to read the http response body into io: %v", resp.Body)
-// }
-
-// return string(b), nil
