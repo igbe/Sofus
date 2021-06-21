@@ -1,0 +1,6 @@
+# This file holds the configs for Sofus. It folllows the yaml standard
+
+# The below url contains supported sites for Sofus.
+urlConfig:
+  SANS:
+    - https://www.example.com
