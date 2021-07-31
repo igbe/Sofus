@@ -2,8 +2,11 @@
 
 # The below url contains supported sites for Sofus.
 urlConfig:
-  SANS:
-    - https://www.sans.org/reading-room/whitepapers/critical/
-    - https://www.sans.org/reading-room/whitepapers/detection/
-    - https://www.sans.org/reading-room/whitepapers/forensics/
-    - https://www.sans.org/reading-room/whitepapers/incident/
+  # SANS sitescsacas
+  - https://www.sans.org/reading-room/whitepapers/critical/, ParseSANS
+  - https://www.sans.org/reading-room/whitepapers/detection/, ParseSANS
+  - https://www.sans.org/reading-room/whitepapers/forensics/, ParseSANS
+  - https://www.sans.org/reading-room/whitepapers/incident/, ParseSANS
+
+workerConfig:
+  retryInterval: 2

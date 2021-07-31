@@ -2,5 +2,7 @@
 
 # The below url contains supported sites for Sofus.
 urlConfig:
-  SANS:
-    - https://www.example.com
+  - https://www.example.com
+
+workerConfig:
+  retryInterval: 2
