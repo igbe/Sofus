@@ -4,9 +4,7 @@
 urlConfig:
   # SANS sitescsacas
   - https://www.sans.org/reading-room/whitepapers/critical/, ParseSANS
-  - https://www.sans.org/reading-room/whitepapers/detection/, ParseSANS
-  - https://www.sans.org/reading-room/whitepapers/forensics/, ParseSANS
-  - https://www.sans.org/reading-room/whitepapers/incident/, ParseSANS
+  - https://trendmicro.com/en/research, ParseTrendMicro
 
 workerConfig:
   retryInterval: 2

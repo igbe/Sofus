@@ -6,8 +6,6 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
-	"sync"
-	"time"
 
 	config "github.com/igbe/Sofus/pkg"
 	log "github.com/sirupsen/logrus"
@@ -24,12 +22,9 @@ type configParams struct {
 	extension string
 }
 
-// Kicks off the tasks assigned to the various workers which includes
-// visiting the sites and retrieving the pages and then parsing the
-// title and other useful values.
-func worker(url string, parserFunc string) {
-	fmt.Printf("Processing url:%s with function: %s\n", url, parserFunc)
-	time.Sleep(3 * time.Second)
+type Sites struct {
+	url        string
+	ParserName string
 }
 
 // Initialize important things that need to run before main
@@ -43,7 +38,7 @@ func init() {
 		log.Fatal(err)
 	}
 
-	// Write all  log output to a log file in teh home dir
+	// Write all  log output to a log file in the home dir
 	// If the file doesn't exist, create it or append to the file
 	logFile, err := os.OpenFile(filepath.Join(homeDir, ".sofus.log"), os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0666)
 	if err != nil {
@@ -57,11 +52,20 @@ func init() {
 	})
 }
 
-func main() {
-	var wg sync.WaitGroup
+// fetchSites parses the items in the conf config and returns the url and the name of teh function to parse the url contents.
+func fetchSites(conf interface{}) []Sites {
+	var sites []Sites
+	// Note: Type assertion are performed on the conf interface before accessing the Orgs key.
+	for _, urlWithFunc := range conf.(config.Configuration).Orgs {
+		res := strings.Split(strings.ReplaceAll(urlWithFunc, " ", ""), ",")
+		sites = append(sites, Sites{url: res[0], ParserName: res[1]})
+	}
+	return sites
+}
 
+func main() {
 	cp := configParams{
-		path:      "../configs",
+		path:      "configs",
 		fileName:  "config",
 		extension: "yaml",
 	}
@@ -72,20 +76,32 @@ func main() {
 		contextLogger.Error(err)
 	}
 
-	//Process each org/site by calling the appropriate extractor
-	//Note: we are performing type assertion on the conf interface before
-	//accessing the Orgs key.
-	for _, urlWithFunc := range conf.(config.Configuration).Orgs {
-		res := strings.Split(strings.ReplaceAll(urlWithFunc, " ", ""), ",")
-		url := res[0]
-		parserFunc := res[1]
+	// Channel to hold teh return values from the parsers.
+	cOut := make(chan PageOutput)
 
-		wg.Add(1)
+	sites := fetchSites(conf)
+
+	// Process each org/site by calling the appropriate extractor
+	for _, s := range sites {
 		go func(url string, parserFunc string) {
-			defer wg.Done()
-			worker(url, parserFunc)
-		}(url, parserFunc)
+			cOut <- Parsers[parserFunc](url)
+		}(s.url, s.ParserName)
 	}
-	wg.Wait()
+
+	// Collect results:
+	results := make([]PageOutput, len(sites))
+
+	for i := range results {
+		out := <-cOut
+
+		// Check if the parser returned empty result
+		if len(out.articles) == 0 {
+			contextLogger.Warnf(fmt.Sprintf("%s: returned empty article list for configured url", out.parser))
+		}
+
+		results[i] = out
+	}
+	// For now Temporarily print output to console
+	fmt.Printf("Results: %+v\n", results)
 
 }
